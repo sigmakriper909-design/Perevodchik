@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0">
+<title>Переводчик: иврит ⇄ русский</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:      #24445c;
+    --ink-dark: #1b3548;
+    --gold:     #b98a2e;
+    --gold-bg:  #f6e9cc;
+    --paper:    #f7f4ee;
+    --card:     #ffffff;
+    --text:     #262421;
+    --text-soft:#6b665e;
+    --error-bg: #fbeaea;
+    --error-text:#8a2c2c;
+    --radius:   18px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+    color: var(--text);
+    font-family: 'Rubik', -apple-system, 'Segoe UI', Arial, sans-serif;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 28px 16px 48px;
+  }
+
+  .page {
+    width: 100%;
+    max-width: 640px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 22px;
+  }
+
+  h1 {
+    font-size: 34px;
+    font-weight: 800;
+    margin: 0 0 10px;
+    color: var(--ink-dark);
+    letter-spacing: 0.5px;
+  }
+
+  h1 .arrow {
+    color: var(--gold);
+    padding: 0 6px;
+    display: inline-block;
+  }
+
+  .subtitle {
+    font-size: 18px;
+    line-height: 1.5;
+    color: var(--text-soft);
+    margin: 0;
+  }
+
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 26px 22px;
+    box-shadow: 0 10px 30px rgba(36, 68, 92, 0.10);
+  }
+
+  .mode-toggle {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .mode-btn {
+    flex: 1 1 auto;
+    min-height: 52px;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--ink);
+    background: #eef1ea;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    padding: 8px 14px;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .mode-btn.active { background: var(--ink); color: #fff; }
+  .mode-btn:hover:not(.active) { background: #e2e7dd; }
+  .mode-btn:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  .field-label {
+    display: block;
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--ink-dark);
+  }
+
+  textarea {
+    width: 100%;
+    font-family: inherit;
+    font-size: 22px;
+    line-height: 1.5;
+    padding: 16px;
+    border: 2px solid #dcd6c9;
+    border-radius: 14px;
+    resize: vertical;
+    min-height: 120px;
+    color: var(--text);
+    background: #fffefb;
+  }
+
+  textarea:focus {
+    outline: 3px solid var(--gold);
+    outline-offset: 1px;
+    border-color: var(--gold);
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+  }
+
+  button {
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  .btn-primary {
+    flex: 1 1 auto;
+    min-height: 64px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--ink);
+    border: none;
+    border-radius: 14px;
+    padding: 0 24px;
+    transition: transform 0.08s ease, background 0.15s ease;
+  }
+
+  .btn-primary:hover { background: var(--ink-dark); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled {
+    background: #a9b7c1;
+    cursor: default;
+  }
+  .btn-primary:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  .btn-text {
+    background: none;
+    border: none;
+    font-size: 17px;
+    color: var(--text-soft);
+    text-decoration: underline;
+    padding: 8px;
+  }
+  .btn-text:hover { color: var(--ink); }
+
+  .error {
+    margin-top: 18px;
+    background: var(--error-bg);
+    color: var(--error-text);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 17px;
+    line-height: 1.5;
+  }
+
+  .result {
+    margin-top: 24px;
+    padding-top: 22px;
+    border-top: 2px dashed #e3ddcd;
+  }
+
+  .result-header {
+    margin-bottom: 12px;
+  }
+
+  .direction-pill {
+    display: inline-block;
+    background: var(--gold-bg);
+    color: #7a5a17;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 999px;
+    transform: rotate(-3deg);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .direction-pill {
+      animation: stampIn 0.35s ease-out;
+    }
+  }
+
+  @keyframes stampIn {
+    from { opacity: 0; transform: scale(1.35) rotate(-9deg); }
+    to   { opacity: 1; transform: scale(1) rotate(-3deg); }
+  }
+
+  .output-text {
+    font-size: 28px;
+    font-weight: 500;
+    line-height: 1.6;
+    color: var(--ink-dark);
+    margin: 4px 0 20px;
+    white-space: pre-wrap;
+  }
+
+  .btn-secondary {
+    min-height: 56px;
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--ink);
+    background: #fff;
+    border: 2px solid var(--ink);
+    border-radius: 14px;
+    padding: 0 22px;
+    transition: background 0.15s ease;
+  }
+  .btn-secondary:hover { background: #eef3f6; }
+  .btn-secondary:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 2px;
+  }
+  .btn-secondary:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  footer {
+    text-align: center;
+    margin-top: 26px;
+    font-size: 16px;
+    color: var(--text-soft);
+  }
+
+  @media (max-width: 420px) {
+    h1 { font-size: 28px; }
+    .output-text { font-size: 24px; }
+    .subtitle { font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="page">
+    <header>
+      <h1>עברית<span class="arrow">⇄</span>Русский</h1>
+      <p class="subtitle">Выберите направление, напишите текст — и нажмите кнопку.</p>
+    </header>
+
+    <main class="card">
+      <div class="mode-toggle" role="group" aria-label="Направление перевода">
+        <button type="button" class="mode-btn active" id="modeHeRu" data-mode="he-ru">עברית → Русский</button>
+        <button type="button" class="mode-btn" id="modeRuHe" data-mode="ru-he">Русский → עברית</button>
+      </div>
+
+      <label class="field-label" for="inputText">Ваш текст</label>
+      <textarea id="inputText" dir="auto" rows="4" placeholder="לדוגמה: שלום, מה שלומך?"></textarea>
+
+      <div class="actions">
+        <button id="translateBtn" class="btn-primary">Перевести</button>
+        <button id="clearBtn" class="btn-text" type="button">Очистить</button>
+      </div>
+
+      <div id="errorBox" class="error" role="status" aria-live="polite" hidden></div>
+
+      <div id="resultBox" class="result" role="status" aria-live="polite" hidden>
+        <div class="result-header">
+          <span id="directionLabel" class="direction-pill"></span>
+        </div>
+        <p id="outputText" class="output-text"></p>
+        <button id="listenBtn" class="btn-secondary" type="button">🔊 Послушать перевод</button>
+      </div>
+    </main>
+
+    <footer>
+      <p>Сделано для бабушки, с любовью 💙</p>
+    </footer>
+  </div>
+
+<script>
+  const inputText = document.getElementById('inputText');
+  const translateBtn = document.getElementById('translateBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const errorBox = document.getElementById('errorBox');
+  const resultBox = document.getElementById('resultBox');
+  const directionLabel = document.getElementById('directionLabel');
+  const outputText = document.getElementById('outputText');
+  const listenBtn = document.getElementById('listenBtn');
+
+  const modeButtons = document.querySelectorAll('.mode-btn');
+  let currentMode = 'he-ru';
+
+  const MODE_CONFIG = {
+    'he-ru': {
+      label: 'עברית → Русский',
+      targetLang: 'ru',
+      placeholder: 'לדוגמה: שלום, מה שלומך?',
+      systemPrompt: `Ты — профессиональный переводчик с иврита на русский язык.
+Переведи следующий текст с иврита на русский язык, живым естественным языком, сохраняя тон и стиль оригинала (включая разговорные выражения, вежливые обороты, шутки).
+В ответе выведи ТОЛЬКО перевод на русском языке — без исходного текста, без кавычек, без пояснений, без транслитерации, без вариантов перевода.`
+    },
+    'ru-he': {
+      label: 'Русский → עברית',
+      targetLang: 'he',
+      placeholder: 'Например: Здравствуй, дорогая! Как твои дела?',
+      systemPrompt: `Ты — профессиональный переводчик с русского языка на иврит.
+Переведи следующий текст с русского языка на иврит, живым естественным языком, сохраняя тон и стиль оригинала (включая разговорные выражения, вежливые обороты, шутки).
+В ответе выведи ТОЛЬКО перевод на иврите — без исходного текста, без кавычек, без пояснений, без транслитерации, без вариантов перевода.`
+    }
+  };
+
+  async function callTranslator(text, systemPrompt) {
+    const response = await fetch("/api/translate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, systemPrompt })
+    });
+
+    if (!response.ok) {
+      throw new Error("Ошибка сети: " + response.status);
+    }
+
+    const data = await response.json();
+    return (data.translation || "").trim();
+  }
+
+  function setLoading(isLoading) {
+    translateBtn.disabled = isLoading;
+    translateBtn.textContent = isLoading ? "Переводим…" : "Перевести";
+  }
+
+  function speak(text, lang) {
+    if (!('speechSynthesis' in window)) {
+      errorBox.textContent = "Озвучивание не поддерживается в этом браузере.";
+      errorBox.hidden = false;
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = lang === 'he' ? 'he-IL' : 'ru-RU';
+    utter.rate = 0.95;
+
+    const voices = window.speechSynthesis.getVoices();
+    const match = voices.find(v => v.lang && v.lang.toLowerCase().startsWith(lang === 'he' ? 'he' : 'ru'));
+    if (match) utter.voice = match;
+
+    window.speechSynthesis.speak(utter);
+  }
+
+  async function handleTranslate() {
+    const text = inputText.value.trim();
+    errorBox.hidden = true;
+
+    if (!text) {
+      errorBox.textContent = "Сначала напишите текст, который нужно перевести.";
+      errorBox.hidden = false;
+      return;
+    }
+
+    resultBox.hidden = true;
+    setLoading(true);
+
+    const config = MODE_CONFIG[currentMode];
+
+    try {
+      const translated = await callTranslator(text, config.systemPrompt);
+      if (!translated) throw new Error("empty");
+
+      outputText.textContent = translated;
+      outputText.dir = config.targetLang === 'he' ? 'rtl' : 'ltr';
+      outputText.lang = config.targetLang;
+
+      directionLabel.textContent = config.label;
+
+      listenBtn.dataset.text = translated;
+      listenBtn.dataset.lang = config.targetLang;
+
+      resultBox.hidden = false;
+    } catch (err) {
+      errorBox.textContent = "Не получилось перевести. Проверьте интернет-соединение и попробуйте ещё раз.";
+      errorBox.hidden = false;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  modeButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.mode === currentMode) return;
+      currentMode = btn.dataset.mode;
+      modeButtons.forEach((b) => b.classList.toggle('active', b === btn));
+      inputText.placeholder = MODE_CONFIG[currentMode].placeholder;
+      inputText.value = '';
+      errorBox.hidden = true;
+      resultBox.hidden = true;
+      window.speechSynthesis && window.speechSynthesis.cancel();
+      inputText.focus();
+    });
+  });
+
+  translateBtn.addEventListener('click', handleTranslate);
+
+  inputText.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      handleTranslate();
+    }
+  });
+
+  clearBtn.addEventListener('click', () => {
+    inputText.value = "";
+    errorBox.hidden = true;
+    resultBox.hidden = true;
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    inputText.focus();
+  });
+
+  listenBtn.addEventListener('click', () => {
+    speak(listenBtn.dataset.text, listenBtn.dataset.lang);
+  });
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.getVoices();
+  }
+</script>
+
+</body>
+</html>
